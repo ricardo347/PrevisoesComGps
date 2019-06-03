@@ -3,6 +3,7 @@ package br.com.previsoescomgps;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
 import java.util.TimeZone;
 
 public class Weather {
@@ -37,4 +38,26 @@ public class Weather {
         calendar.add(Calendar.MILLISECOND, tz.getOffset(calendar.getTimeInMillis()));
         return sdf.format(calendar.getTime());
     }
+
+
+
+   /* {
+        "dt":1559530800,
+            "main":{"temp":21.82,
+                    "temp_min":21.77,
+                    "temp_max":21.82,"pressure":1013.79,"sea_level":1013.79,"grnd_level":1013.72,
+                    "humidity":64,"temp_kf":0.05},
+            "weather":[
+                    {"id":800,
+                            "main":"Clear"
+                            ,"description":"clear sky"
+                            ,"icon":"01n"}],
+            "clouds":{"all":0},
+            "wind":{"speed":2.51,"deg":31.603},
+            "sys":{"pod":"n"},
+            "dt_txt":"2019-06-03 03:00:00"
+    }
+*/
+
+
 }

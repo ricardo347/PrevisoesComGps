@@ -18,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
@@ -31,6 +32,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,8 +45,11 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -123,7 +128,8 @@ public class MainActivity extends AppCompatActivity {
                 endereco,
                 null,
                 (response) ->{
-                    lidaComJSON(response);
+                    //lidaComJSON(response);
+                    lidaComJSONGson(response.toString());
                 },
                 (error) ->{
                     Toast.makeText(this,
@@ -134,56 +140,131 @@ public class MainActivity extends AppCompatActivity {
         requestQueue.add(req);
     }
 
-    public void lidaComJSON (JSONObject json){
-        lidaComJSON(json.toString());
+    /*##########################################################################################################
+    Implementação da biblioteca Gson
+    usei a requisição normal, e todo o tratamento do JSON foi feito com a biblioteca, criando as classes modelo
+    do objeto JSON
+
+    */
+    public void lidaComJSONGson(String resultado){
+        Gson gson = new Gson();
+        Previsao previsao = gson.fromJson(resultado, Previsao.class);
+
+        for (int i = 0; i < previsao.getList().size();  i++){
+            Weather w = new Weather(
+                    previsao.getList().get(i).getDt(),
+                    previsao.getList().get(i).getMain().getTemp_min(),
+                    previsao.getList().get(i).getMain().getTemp_max(),
+                    previsao.getList().get(i).getMain().getHumidity(),
+                    previsao.getList().get(i).getWeather().get(0).getDescription(),//unico
+                    previsao.getList().get(i).getWeather().get(0).getIcon()//unico
+                    );
+            previsoes.add(w);
+            adapter.notifyDataSetChanged();
+        }
+
     }
 
-    public void lidaComJSON (String resultado){
-        try {
-            previsoes.clear();
-            JSONObject json = new JSONObject(resultado);
-            JSONArray list = json.getJSONArray("list");
-            for (int i = 0; i < list.length(); i++){
-                JSONObject previsaoDaVez = list.getJSONObject(i);
-                long dt = previsaoDaVez.getLong("dt");
-                JSONObject main = previsaoDaVez.getJSONObject("main");
-                double temp_min =
-                        main.getDouble("temp_min");
-                double temp_max =
-                        main.getDouble("temp_max");
-                double humidity =
-                        main.getDouble("humidity");
-                JSONArray weather =
-                        previsaoDaVez.getJSONArray("weather");
-                JSONObject unico =
-                        weather.getJSONObject(0);
-                String description =
-                        unico.getString("description");
-                String icon =
-                        unico.getString("icon");
-                Weather w =
-                        new Weather(
-                                dt,
-                                temp_min,
-                                temp_max,
-                                humidity,
-                                description,
-                                icon
-                        );
-                previsoes.add(w);
-            }
-            adapter.notifyDataSetChanged();
 
-        } catch (JSONException e) {
-            Toast.makeText(
-                    this,
-                    getString(R.string.read_error),
-                    Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
+
+
+    public class Previsao{
+        String message;
+        String cnt;
+        List<Lista> list;
+
+
+        public List<Lista> getList() {
+            return list;
+        }
+
+        public void setList(List<Lista> list) {
+            this.list = list;
         }
     }
 
+    public class Lista{
+        long dt;
+        Main main;
+        List<Tempo> weather;
 
+        public long getDt() {
+            return dt;
+        }
+
+        public void setDt(long dt) {
+            this.dt = dt;
+        }
+
+        public Main getMain() {
+            return main;
+        }
+
+        public void setMain(Main main) {
+            this.main = main;
+        }
+
+        public List<Tempo> getWeather() {
+            return weather;
+        }
+
+        public void setWeather(List<Tempo> weather) {
+            this.weather = weather;
+        }
+
+    }
+
+    public class Main{
+        double temp_min;
+        double temp_max;
+        double humidity;
+
+        public double getTemp_min() {
+            return temp_min;
+        }
+
+        public void setTemp_min(double temp_min) {
+            this.temp_min = temp_min;
+        }
+
+        public double getTemp_max() {
+            return temp_max;
+        }
+
+        public void setTemp_max(double temp_max) {
+            this.temp_max = temp_max;
+        }
+
+        public double getHumidity() {
+            return humidity;
+        }
+
+        public void setHumidity(double humidity) {
+            this.humidity = humidity;
+        }
+    }
+    public class Tempo{
+        String description;
+        String icon;
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public String getIcon() {
+            return icon;
+        }
+
+        public void setIcon(String icon) {
+            this.icon = icon;
+        }
+    }
+
+//###################################################################################################
 
     @Override
     protected void onStop() {
@@ -239,5 +320,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
 
 }
